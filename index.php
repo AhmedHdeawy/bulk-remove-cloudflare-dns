@@ -1,27 +1,47 @@
 <?php
 
+$zoneID = "";
+$headers = [
+    "X-Auth-Email: youremail@gmail.com",
+    "X-Auth-Key: YOUR_API_TOKEN"
+];
 
-function postRequestWithCurl($url, $type = 'GET', $data = null, $headers = [], $decodeResponse = true)
-    {
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_POST, $type == 'POST');
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+$dnsListURL = "https://api.cloudflare.com/client/v4/zones/{$zoneID}/dns_records";
 
-        if ($data) {
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
-        }
+$result = postRequestWithCurl($dnsListURL, $headers);
 
-        $result = curl_exec($ch);
-        curl_close($ch);
-        
-        if (!$decodeResponse) {
-            return $result;
-        }
+foreach ($result['result'] as $key => $value) {
+    $deleteDNSURLl = "https://api.cloudflare.com/client/v4/zones/{$zoneID}/dns_records/{$value['id']}";
 
-        return json_decode($result, true);
-    }
+    deleteRequestWithCurl($deleteDNSURLl, $headers);
+}
+
+function postRequestWithCurl($url, $headers = [])
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    $result = curl_exec($ch);
+    curl_close($ch);
+    
+    return json_decode($result, true);
+}
+
+function deleteRequestWithCurl($url, $headers = [])
+{
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $hd);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+
+    $result = curl_exec($ch);
+    curl_close($ch);
+}
 
 ?>
